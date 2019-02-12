@@ -1,0 +1,11 @@
+---
+
+- hosts: "{{machine_to_setup}}"
+  remote_user: "{{user_to_use}}"
+  become: yes
+  become_method: sudo
+  vars_files:
+    - defaults/main.yml
+  roles:
+    - common
+    - ansible-role-postgresql

@@ -2,14 +2,14 @@
 
 
 machine_to_setup: "all"
-user_to_use: "rootuser"
+user_to_use: "ashwinr"
 
 
 
 
 
 # Basic settings
-postgresql_version: 11.1
+
 postgresql_encoding: "UTF-8"
 postgresql_locale: "en_US.UTF-8"
 postgresql_ctype: "en_US.UTF-8"

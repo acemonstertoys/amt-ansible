@@ -1,0 +1,9 @@
+[webservers]
+amt-rocket  ansible_ssh_host=amt-rocket.xen.prgmr.com  ansible_connection=ssh  ansible_user=ashwinr ansible_ssh_private_key_file=~/.ssh/amt/amt-key  ansible_become=true
+
+[dbservers]
+amt-rocket  ansible_ssh_host=amt-rocket.xen.prgmr.com  ansible_connection=ssh  ansible_user=ashwinr ansible_ssh_private_key_file=~/.ssh/amt/amt-key  ansible_become=true
+
+[staging:children]
+webservers
+dbservers

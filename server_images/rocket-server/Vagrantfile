@@ -1,0 +1,87 @@
+################################################################################
+#
+# Vagrantfile
+#
+################################################################################
+
+# To create a dev centos server for testing
+RELEASE='2019.01'
+
+### Change here for more memory/cores ###
+VM_MEMORY=8192
+VM_CORES=4
+
+
+
+
+$passwordAuthSetupScriptCentos = <<EOC
+    sudo sed -i 's/PasswordAuthentication no/\#PasswordAuthentication no/g' /etc/ssh/sshd_config
+    sudo sed -i 's/\#PasswordAuthentication yes/PasswordAuthentication yes/g' /etc/ssh/sshd_config
+    sudo service sshd restart
+EOC
+
+
+$DefaultUserAddScript = <<ADUSER
+    sudo id -u rootuser &>/dev/null || sudo useradd -m rootuser
+    #echo "rootpass" | sudo passwd --stdin rootuser
+    sudo id -u rootuser &>/dev/null && echo -e "rootpass\nrootpass" | sudo passwd rootuser 
+    sudo id -u root &>/dev/null && echo -e "rootpass\nrootpass" | sudo passwd root
+    
+    python -mplatform | grep -qi Ubuntu && (sudo groups rootuser | grep -qi sudo || sudo usermod -aG sudo rootuser) 
+    
+    python -mplatform | grep -qi Ubuntu || (sudo groups rootuser | grep -qi wheel || sudo usermod -aG wheel rootuser)
+    
+    echo "rootuser   ALL=(ALL)  NOPASSWD: ALL" | sudo tee  /etc/sudoers.d/controllerconfig
+    echo "Testin platform"
+    python -mplatform | grep -qi Ubuntu && sudo service sudo restart
+    echo "Restating sudo platform"
+ADUSER
+
+
+
+$ControllerScript = <<CNTRLSCRIPT
+    sudo yum -q list installed net-tools &>/dev/null  || sudo yum -y install net-tools
+    sudo yum -q list installed libffi &>/dev/null  || sudo yum -y install libffi
+    sudo yum -q list installed libffi-devel &>/dev/null  || sudo yum -y install libffi-devel
+    
+CNTRLSCRIPT
+
+
+
+Vagrant.configure('2') do |config|
+  config.vm.box = 'centos/7'
+
+  config.vm.provider :vmware_fusion do |v, override|
+    v.vmx['memsize'] = VM_MEMORY
+    v.vmx['numvcpus'] = VM_CORES
+  end
+
+  config.vm.provider :virtualbox do |v, override|
+    v.memory = VM_MEMORY
+    v.cpus = VM_CORES
+
+    required_plugins = %w( vagrant-vbguest )
+    required_plugins.each do |plugin|
+      system "vagrant plugin install #{plugin}" unless Vagrant.has_plugin? plugin
+    end
+  end
+
+  config.vm.provision 'shell' do |s|
+    s.inline = 'echo Setting up machine name'
+
+    config.vm.provider :vmware_fusion do |v, override|
+      v.vmx['displayname'] = "AMT-Rocket#{RELEASE}"
+    end
+
+    config.vm.provider :virtualbox do |v, override|
+      v.name = "AMT-Rocket#{RELEASE}"
+    end
+  end
+
+  config.vm.provision "shell", privileged: true,inline: $passwordAuthSetupScriptCentos
+  config.vm.provision "shell", privileged: true,inline: $DefaultUserAddScript
+  config.vm.provision "shell", privileged: true,inline: $ControllerScript
+
+
+
+end

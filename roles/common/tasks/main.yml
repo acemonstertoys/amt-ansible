@@ -1,0 +1,13 @@
+---
+
+- name: Ensure YUM is updated
+  become: yes
+  yum: name="*" state=latest
+
+- name: Ensure Development Tools are installed
+  become: yes
+  yum: name="@Development tools" state=present
+
+- name: Ensure libselinux-python package is installed
+  become: yes
+  yum: name=libselinux-python state=present

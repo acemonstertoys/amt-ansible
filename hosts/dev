@@ -1,0 +1,17 @@
+[webservers]
+192.168.0.3 ansible_become=true	become-method=sudo
+
+[dbservers]
+192.168.0.3	ansible_become=true	become-method=sudo
+
+[memcachedservers]
+192.168.0.3	ansible_become=true	become-method=sudo
+
+[rabbitmqservers]
+192.168.0.3	ansible_become=true	become-method=sudo
+
+[dev:children]
+webservers
+dbservers
+memcachedservers
+rabbitmqservers
