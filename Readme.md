@@ -3,6 +3,11 @@
 ansible-playbook -i amt_rocket.ini amt_infra.yml --ask-sudo-pass
 
 
+# Change the user
+	Goto defaults/main.yml  update  
+	
+	user_to_use: "Your UserName"
+
 
 ## Playing on a real cloud server
 
