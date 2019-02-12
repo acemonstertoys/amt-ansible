@@ -1,0 +1,60 @@
+---
+# Check the alt python3 version
+- name: check alt python version
+  shell: /usr/local/bin/python3.6 --version
+  register: python3_version
+  ignore_errors: yes  # If not installed
+  tags:
+    - python-alt
+
+# Stuff I did manually to compile everything first by hand
+# Python3 alt-install - steps to create binary:
+# wget https://www.python.org/ftp/python/3.6.4/Python-3.6.4.tgz
+# tar xf Python-3.6.4.tgz
+# mv Python-3.6.4 Python-3.6.4-binary && cd Python-3.6.4-binary
+# ./configure --prefix=/usr/local --enable-optimizations
+# cd .. && tar -zcvf Python-3.6.4-binary.tar.gz Python-3.6.4-binary (upload to mirror servers)
+# make && sudo make altinstall UNINST=1
+- name: download and unpack alternative python3
+  unarchive:
+    src: http://www.yourmirror.com/centos/python/Python-3.6.4-binary.tar.gz dest=/tmp/Python-3.6.4-binary.tar.gz
+    dest: /tmp
+    remote_src: yes
+    keep_newer: yes
+  when: python3_version['stderr'] != 'Python 3.6.4'
+  tags:
+    - python-alt
+
+# Its possible to install (instead of altinstall) python3 here
+- name: make install alt python3
+  make:
+    chdir: /tmp/Python-3.6.4-binary
+    target: altinstall
+    params:
+      UNINST: 1  # Replace
+  when: python3_version['stderr'] != 'Python 3.6.4'
+  become: yes
+  tags:
+    - python-alt
+
+- name: download get-pip.py
+  get_url:
+    url: https://bootstrap.pypa.io/get-pip.py
+    dest: /tmp/get-pip.py
+    mode: 0664
+  tags:
+    - python-alt
+
+- name: install pip for python3
+  shell: /usr/local/bin/python3.6 /tmp/get-pip.py
+  become: yes
+  tags:
+    - python-alt
+
+# We need virtualenv installed under py3 for the virtualenv command to work
+- pip:
+    name: virtualenv
+    executable: /usr/local/bin/pip3.6
+  become: True
+  tags:
+    - python-alt

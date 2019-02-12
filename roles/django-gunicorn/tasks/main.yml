@@ -1,0 +1,88 @@
+---
+- name: Install dumb init
+  get_url:
+    dest: /usr/bin/dumb-init
+    url: https://github.com/Yelp/dumb-init/releases/download/v1.2.0/dumb-init_1.2.0_amd64
+    mode: 0775
+    validate_certs: no
+
+- name: Install epel
+  yum: 
+    name: epel-release
+    state: present 
+    disable_gpg_check: yes
+
+- name: Install python deps
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    disable_gpg_check: yes
+  with_items: "{{ DJANGO_RPM_DEPS }}"
+
+- name: Make Django user
+  user:
+    name: "{{ DJANGO_USER }}"
+    uid: 1500
+    group: root
+    state: present
+    createhome: yes
+    home: "{{ DJANGO_ROOT }}"
+
+- name: Change /django permissions
+  file:
+    path: "{{ DJANGO_ROOT }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}" 
+    group: root
+    mode: 0775 
+
+- name: Make virtualenv dir
+  file:
+    name: "{{ DJANGO_VENV }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}"
+    group: root
+    mode: 0775
+
+#- name: Setup virtualenv
+#  command: virtualenv .
+# args:
+#    chdir: "{{ DJANGO_VENV }}"
+#    creates: "{{ DJANGO_VENV }}/bin/python"
+#  remote_user: "{{ DJANGO_USER }}"
+  
+- name: Setup an environment for the tracker using Python 3.6
+  shell: /usr/local/bin/python3.6  -m venv {{ DJANGO_VENV }}
+
+- name: Set Permission on Virtual Env
+  file: dest={{ DJANGO_VENV }} owner="{{ DJANGO_USER }}"  mode=0775 recurse=yes
+
+
+- name: Copy requirements
+  copy:
+    src: src/requirements.txt
+    dest: "{{ DJANGO_ROOT }}/requirements.txt"
+    owner: "{{ DJANGO_USER }}"
+    mode: 0644
+
+
+
+
+- name: Install requirements
+  pip:
+    executable: "{{ DJANGO_VENV }}/bin/pip"
+    requirements: "{{ DJANGO_ROOT }}/requirements.txt"
+#  remote_user: "{{ DJANGO_USER }}"
+
+- name: Make staticfiles dir
+  file:
+    name: "{{ DJANGO_STATIC_ROOT }}/{{ item }}"
+    state: directory
+    owner: "{{ DJANGO_USER }}"
+    group: root
+    mode: 0775
+  with_items:
+  - app
+  - admin
+

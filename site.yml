@@ -9,3 +9,6 @@
   roles:
     - common
     - ansible-role-postgresql
+    - python3
+    - django-gunicorn
+    - nginx

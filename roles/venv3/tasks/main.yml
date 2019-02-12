@@ -1,0 +1,47 @@
+---
+# Setup a Python 3.3 virtual environment to run the tracker
+
+- name: "Checking folders"
+  stat:
+  path: "{{item}}"
+  register: folder_stats
+  with_items:
+    - ["/var/www/amtassets"]
+    
+    
+- name: "Creating multiple folders without disturbing previous permissions"
+  file:
+   path: "{{item.item}}"
+   state: directory
+   mode: 0766
+   group: root
+   owner: root
+  when: item.stat.exists == false
+  with_items:
+    - "{{folder_stats.results}}"
+
+
+- name: Setup an environment for the tracker using Python 3.6
+  shell: /usr/local/bin/python3.6  -m venv /var/www/amtassets/
+  
+  
+- name: Load new virtual env
+  shell: source  /var/www/amtassets/bin/activate  
+
+- name: Install packages required for the Python Tracker in the Python 3.6 environment
+  pip: name={{ item }} virtualenv="/var/www/amtassets/"
+  with_items: 
+    - python-dateutil
+    - httmock
+    - freezegun
+    - pytest
+    - django
+    - gunicorn
+    - psycopg2
+    - djangorestframework
+    - coreapi
+    - markdown
+    - django-filter
+    - django-crispy-forms
+    - django-guardian
+
