@@ -3,6 +3,15 @@
 ansible-playbook -i amt_rocket.ini amt_infra.yml --ask-sudo-pass
 
 
+# Custom Virtualbox VM
+	
+	If you want to create a custom virtualbox vm then you can use Vagrantfile at location
+	
+	/server_images/rocket-server/Vagrantfile
+	
+	and just run "Vagrant up" 
+
+
 # Change the user
 	Goto defaults/main.yml  update  
 	
